@@ -1,0 +1,14 @@
+
+1.Prevent users from creating duplicate incident records with the same short description.
+
+(function executeRule(current, previous /*null when async*/) {
+
+	// Add your code here
+	var gr = new GlideRecord('incident');
+	gr.addQuery('short_description'.current.short_description);
+	gr.query();
+	while(gr.next()){
+		current.setAbortAction(true);
+	}
+
+})(current, previous);
