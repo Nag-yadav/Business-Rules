@@ -5,7 +5,7 @@
 
 	// Add your code here
 	var gr = new GlideRecord('incident');
-	gr.addQuery('short_description'.current.short_description);
+	gr.addQuery('short_description',current.short_description);
 	gr.query();
 	while(gr.next()){
 		current.setAbortAction(true);
