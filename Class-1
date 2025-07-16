@@ -12,3 +12,54 @@
 	}
 
 })(current, previous);
+------------------------------------------------------------------------------------------------------------------------------------
+2. Automatically capitalize the short description field before saving an incident.
+
+current.short_description = current.short_description.toUpperCase();
+------------------------------------------------------------------------------------------------------------------------------------
+3.Ensure that only administrators can modify the priority field in existing incidents.
+
+if (current.priority != previous.priority) {
+        // Check if user is NOT an admin
+        if (!gs.hasRoleExactly('admin')) {
+            gs.addErrorMessage("Only administrators can change the Priority.");
+            current.priority = previous.priority; // Revert the change
+            current.setAbortAction(true); // Stop the record from being saved
+        }
+-------------------------------------------------------------------------------------------------------------------------------------
+4.If the caller is a monitoring system, automatically set the state to "Closed" before saving the incident.
+
+5.Do not allow updates to records in the "Closed" state.
+
+    if (previous.state = 7) {
+        gs.addErrorMessage('You cannot update a record in the Closed state.');
+        current.setAbortAction(true);
+    }
+-------------------------------------------------------------------------------------------------------------------------------------
+6. Do not allow updates to records in the "Closed" state.
+if (previous.state == 7) {
+        gs.addErrorMessage('You cannot update a record in the Closed state.');
+        current.setAbortAction(true);
+    }
+---------------------------------------------------------------------------------------------------------------------------------------
+7. Incident should not be closed if it is in a new state.
+if (current.state == 1) {
+        gs.addErrorMessage('the state is new so,the inc should not close');
+        current.setAbortAction(true);
+    }
+----------------------------------------------------------------------------------------------------------------------------------------
+8.Automatically create a follow-up task when an incident is moved to the "Resolved" state.
+
+if (current.state == 6) {
+
+    var followUp = new GlideRecord('cert_follow_on_task'); // You can replace 'task' with 'sc_task' or your custom follow-up task table
+    followUp.initialize();
+
+    followUp.short_description = "Follow-up for resolved incident: " + current.number;
+    followUp.description = "Please perform follow-up actions for the resolved incident.";
+    followUp.parent = current.sys_id; // Links the task to the incident
+    followUp.assigned_to = current.assigned_to; // Optional: assign to same person
+    followUp.insert();
+}
+-------------------------------------------------------------------------------------------------------------------------------------
+
