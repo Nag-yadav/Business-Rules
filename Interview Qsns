@@ -1,0 +1,37 @@
+
+1. If a incident is created also a problem also be created along with it
+// Business Rule on Incident [incident] table
+// When: after insert
+(function executeRule(current, previous /*null when async*/ ) {
+
+    // Create a new Problem record
+    var prob = new GlideRecord('problem');
+    prob.initialize();
+    prob.short_description = "Auto-created Problem for Incident" + current.number; 
+    
+	var problemSysId = prob.insert();
+	// // Store reference to Problem in Incident (optional)
+    current.problem_id = problemSysId;
+    current.update();
+
+})(current, previous);
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+2. If problem is closed then its associated incident also be closed automatically
+
+(function executeRule(current, previous) {
+
+    if (current.state == '107') {
+        var inc = new GlideRecord('incident');
+        inc.addQuery('problem_id', current.sys_id);
+        inc.addQuery('state', '!=', 7); // not already closed
+        inc.query();
+
+        while (inc.next()) {
+            inc.state = 7; // Closed
+            inc.update();
+        }
+    }
+
+})(current, previous);
